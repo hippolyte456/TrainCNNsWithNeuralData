@@ -7,6 +7,7 @@ from datagenerator import ImageDataGenerator
 from datagenerator_v import ImageDataGeneratorV
 from datetime import datetime
 from label_maps import * 
+#### comment on fait sur VSCode pour mettre à jour les couleurs en fonction des packets présent dans l'environnement ?
 from tensorflow.data import Iterator
 import pandas as pd
 import time

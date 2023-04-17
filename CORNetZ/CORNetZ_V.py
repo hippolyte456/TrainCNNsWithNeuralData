@@ -135,6 +135,12 @@ class CORNetZV(object):
             return tf.reshape(pool4, [self.BATCH_SIZE, -1])
         return tf.reshape(pool4, [self.V_BATCH_SIZE, -1])
 
+'''
+si j'ai bien compris :
+cette fonction elle permet de créer des "pseudo-forwards"qui servent pour 
+évaluer le loss depuis des couches intermédiaires en utilisant exactement les même convolution
+que ceux de la forward principale.
+'''
 def conv(x, W, b, strides, padding, name):
     conv = tf.nn.conv2d(x, W, strides=strides, padding=padding, name=name)
     pre_act = tf.nn.bias_add(conv, b)
