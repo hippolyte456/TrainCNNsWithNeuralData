@@ -204,8 +204,9 @@ def run_net(args, test):
         val_batches_per_epoch = 10
 
     #config = tf.ConfigProto(log_device_placement=True)
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
+########### configuration parallelisme...pourquoi ça plante !... et sur le cluster ça planterait aussi ? 
+    config = tf.ConfigProto(intra_op_parallelism_threads=0, inter_op_parallelism_threads=0)
+    config.gpu_options.allow_growth = False
 
     if(args['v'] != 'None'):
         f_info = 'CORNetZ_' + str(args['v']) + 'ratio=' + str(args['v_ratio']) + 'num_epochs=' + str(args['num_epochs']) + 'n_e_c=' + str(args['n_e_c']) + 'n_e_v=' + str(args['n_e_v']) + '_' + str(r)
@@ -237,7 +238,7 @@ def run_net(args, test):
 #### la fonction d'entrainement commence là 
         for epoch in range(args['num_epochs']):
             print("{} Epoch number: {}".format(datetime.now(), epoch+1))
-
+            
             # Initialize iterator with the training dataset
             sess.run(training_init_op)
             if(args['v'] != 'None'):
@@ -254,12 +255,13 @@ def run_net(args, test):
                 # get next batch of data
                 t = which_train(step, args, epoch)
                 img_batch, label_batch = sess.run(next_batch)
-
+                
                 cif_cost_cur = sess.run(cif_cost, feed_dict = {x: img_batch,
                                                                    y: label_batch,
                                                                    keep_prob: 1.})
                 cif_cost_train += cif_cost_cur 
-
+###########
+                exit()
                 acc, model_preds, act_preds  = sess.run([accuracy, model_pred, act_pred],
                                            feed_dict={x: img_batch,
                                            y: label_batch,
@@ -269,7 +271,8 @@ def run_net(args, test):
                  
                 train_fine_acc += acc
                 train_count += 1
-            
+
+                
                 if(args['v'] !='None'):
                     # get v1 batches
                     img1_batch, img2_batch, RSAs_batch = sess.run(next_batch_v1)
@@ -425,8 +428,7 @@ if __name__ == "__main__":
         else:
             n_epochs = 100 
     
-    print("hello")
-    exit()
+
     for i in range(int(n_times)):
 #### les v_ratios sont l'importance relative du loss de biocontraintes par rapport au loss de classification ? 
         for v_ratio in v_ratios: 
