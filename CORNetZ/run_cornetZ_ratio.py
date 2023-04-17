@@ -424,8 +424,11 @@ if __name__ == "__main__":
             n_epochs = 1
         else:
             n_epochs = 100 
-
+    
+    print("hello")
+    exit()
     for i in range(int(n_times)):
+#### les v_ratios sont l'importance relative du loss de biocontraintes par rapport au loss de classification ? 
         for v_ratio in v_ratios: 
             args = get_args(which=which, v_ratio = float(v_ratio))
             args['test'] = test
