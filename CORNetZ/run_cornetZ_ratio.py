@@ -13,7 +13,7 @@ import time
 import argparse
 import warnings
 warnings.filterwarnings("ignore")
-tf.logging.set_verbosity(tf.logging.ERROR)
+#### tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def compute_cost_V(act1, act2, Y):
@@ -47,6 +47,7 @@ def which_train(step, args, epoch):
         return 'CE'
     return 'total' 
 
+#### cout total = cout V1 + cout CIFAR
 def get_total_cost(cost_v, cost_cifar, lam):
     return ((lam * cost_v) + (cost_cifar))
 
@@ -106,6 +107,8 @@ def run_net(args, test):
                                   img_size=args['img_size'], 
                                   num_classes=args['num_classes'],
                                   shuffle=False)
+
+#### c'est les données pour l'entrainement "V1-constrained ?" ####
     if args['v'] != 'None': 
         v_data = ImageDataGeneratorV(args['v_file'],
                                      mode='inference',
@@ -130,6 +133,7 @@ def run_net(args, test):
     validation_init_op = iterator.make_initializer(val_data.data)
 
     # TF placeholder for graph input and output
+#### c'est quoi TF placeholder ? ####
     if args['v'] != 'None':  
         img1 = tf.placeholder(tf.float32, [args['v_batch_size'], 227, 227, 3])
         img2 = tf.placeholder(tf.float32, [args['v_batch_size'], 227, 227, 3])
@@ -144,23 +148,30 @@ def run_net(args, test):
     model = CORNetZV(x, keep_prob, args['num_classes'], args['train_layers'])
 
     # Link variable to model output
+#### à chaque fois le training fonctionne par pair d'image ####
     if(args['v'] == 'V1'):
         pool_tf1 = model.forward_V1(img1)
         pool_tf2 = model.forward_V1(img2)
+
+#### ça osef c'est pour les tests de contraintes sur les autres RL du réseau
     elif(args['v'] == 'V4'):
         pool_tf1 = model.forward_V4(img1)
         pool_tf2 = model.forward_V4(img2)
     elif(args['v'] == 'IT'):
         pool_tf1 = model.forward_IT(img1)
         pool_tf2 = model.forward_IT(img2)
-        
+
+      
     score = model.forward()
+#### c'est quoi le score ? 
+
 
     # Op for calculating the loss
+#### calcul du loss de classification
     with tf.name_scope("cross_ent"):
         cif_cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=score,
                                                                     labels=y))
-
+#### calcul de loss biocontraint 
     if args['v'] != 'None': 
         v_cost = compute_cost_V(pool_tf1, pool_tf2, RSA)
         total_cost = get_total_cost(v_cost, cif_cost, lam)
@@ -168,6 +179,7 @@ def run_net(args, test):
 
     # Train op
     # Create optimizer and apply gradient descent to the trainable variables
+#### ils optimisent le loss de classification puis la loss biocontrainte sequentiellement
     optimizer = tf.train.GradientDescentOptimizer(args['learning_rate'])
     train_op = optimizer.minimize(loss=cif_cost, global_step=tf.train.get_global_step())
     if args['v'] != 'None': 
@@ -222,6 +234,7 @@ def run_net(args, test):
         print("{} Start training...".format(datetime.now()))
 
         # Loop over number of epochs
+#### la fonction d'entrainement commence là 
         for epoch in range(args['num_epochs']):
             print("{} Epoch number: {}".format(datetime.now(), epoch+1))
 
